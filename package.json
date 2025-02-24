@@ -1,15 +1,30 @@
 {
-  "name": "surveyjs-validator",
-  "version": "1.0.0",
+  "name": "ll-surveyjs-validator",
+  "version": "2.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "src/index.js",
   "dependencies": {
-    "survey-core": "^1.8.54"
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/exporter-prometheus": "^0.57.2",
+    "@opentelemetry/instrumentation-express": "^0.47.1",
+    "@opentelemetry/instrumentation-http": "^0.57.2",
+    "@opentelemetry/sdk-metrics": "^1.30.1",
+    "@opentelemetry/sdk-node": "^0.57.2",
+    "@opentelemetry/sdk-trace-node": "^1.30.1",
+    "express": "^4.21.2",
+    "process": "^0.11.10",
+    "survey-core": "^1.12.24",
+    "xmlhttprequest": "^1.8.0"
   },
-  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "eslint": "^9.21.0",
+    "globals": "^16.0.0",
+    "prettier": "3.5.2"
+  }
 }

@@ -1,46 +1,64 @@
 # SurveyJS Server Validation
 
-Server validation is done by passing both the survey structure as well as the survey data to the service.
-Use a `POST` request with JSON content, pass in the following structure:
+## How to Use
+API docs are available at `/`. You can also view them by opening `api-docs/index.html` or rendering
+`api-docs/surveyjs-validator.yaml` in any tool which supports OpenAPI 3.x.
+
+Server validation is done by passing both the survey structure and data to the service.
+Use a `POST` request to `/validate` with JSON content, pass in the following structure:
 
 ```json
 {
-  "survey": { 
-    "pages": []
+  "schema": {},
+  "data": {}
+}
+```
+
+Where `schema` is the SurveyJS survey (only the pages portion is required) and `data` is the form submission data from
+SurveyJS.
+
+### Example Payload
+```json
+{
+  "schema": {
+    "pages": [
+      {
+        "name": "page1",
+        "elements": [
+          {
+            "type": "text",
+            "name": "question",
+            "isRequired": true,
+            "validators": [
+              {
+                "type": "text",
+                "text": "what",
+                "minLength": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
   },
   "data": {
-    "some_question": "A"
+    "question":"answer"
   }
 }
-
 ```
 
 There is no security, run this in a non-publicly accessible container in your orchestration environment.
 
+## Response
+On successful validation an empty JSON object is returned. Please check the HTTP status code to check for success.
 
-## Steps
+For errors, this API responds with RFC 7807 formatted Problem Details with specific error details.
 
-1. We load the survey structure 
-2. Load the data
-3. Clear incorrect values
-4. Check if the survey has validation errors
-5. Check if the cleaned data is the same as the original data
+### Status codes
+- 200 Valid Schema and Data
+- 400 Input and/or validation error (see response)
 
-Step 3 will remove values from the survey like choices in single choice questions that are not visible / available.
-Step 4 will run data validation (required questions, explicit validators configured in the survey)
-Step 5 is needed because passing in a value `D` to a question with options `A`, `B` and `C` will not trigger validation errors by default.
-Instead, step 3 will remove the value from the data and thus if the question is not mandatory it will pass validation.
 
-Future extensions:
-- Make some steps optional
-- Return the cleaned data
-
-## Status codes
-- 200 All good
-- 400 Bad structure of the JSON
-- 406 If the `Accept` header does not accept JSON
-- 415 Content type is not JSON
-- 422 SurveyJS failed to parse the survey structure 
-
-### Response 200
-Body contains JSON according to the schema at https://github.com/HeRAMS-WHO/surveyjs-validator/response_schema.json
+## Credits
+Thanks to HeRAMS-WHO for the original idea and implementation which can be found here:
+https://github.com/HeRAMS-WHO/surveyjs-validator

@@ -1,0 +1,130 @@
+openapi: 3.0.3
+info:
+  title: SurveyJS Validator API
+  description: Validates a SurveyJS submission against a given SurveyJS schema.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+  /validate:
+    post:
+      summary: Validate SurveyJS Schema and Data
+      description: Uses SurveyJS to validate a given schema and form submission.
+      operationId: validateSurvey
+      requestBody:
+        description: JSON payload containing the Survey JS schema and form submission.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [schema, data]
+              properties:
+                schema:
+                  type: object
+                  description: SurveyJS schema
+                data:
+                  type: object
+                  description: SurveyJS form submission
+            examples:
+              validRequest:
+                summary: Valid request example
+                value:
+                  schema:
+                    pages:
+                      - name: "page1"
+                        elements:
+                          - type: "text"
+                            name: "question"
+                            isRequired: true
+                            validators:
+                              - type: "text"
+                                text: "what"
+                                minLength: 1
+                  data:
+                    question: "answer"
+      responses:
+        "200":
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {}
+        "400":
+          description: Bad request (various validation errors)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [type, title, detail]
+                properties:
+                  type:
+                    type: string
+                    format: uri
+                    description: A URI reference that identifies the problem type
+                  title:
+                    type: string
+                    description: A short, human-readable summary of the problem
+                  detail:
+                    type: string
+                    description: A detailed explanation of the error
+                  schema_errors:
+                    type: array
+                    description: List of schema validation errors
+                    items:
+                      type: object
+                  data_errors:
+                    type: array
+                    description: List of data validation errors
+                    items:
+                      type: object
+              examples:
+                invalidJson:
+                  summary: Invalid JSON
+                  value:
+                    type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/JsonParsingError"
+                    title: "Invalid JSON"
+                    detail: "Unexpected token at position 5"
+                schemaMissing:
+                  summary: Schema missing
+                  value:
+                    type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/SchemaMissingError"
+                    title: "Schema Missing"
+                    detail: "Request payload must contain `schema`, a SurveyJS schema"
+                dataMissing:
+                  summary: Data missing
+                  value:
+                    type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/DataMissingError"
+                    title: "Data Missing"
+                    detail: "Request payload must contain `data`, a SurveyJS form submission"
+                schemaValidationError:
+                  summary: Schema validation failed
+                  value:
+                    type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/SchemaValidationError"
+                    title: "Schema Validation Failed"
+                    detail: "See schema_errors"
+                    schema_errors: [{}, {}]
+                dataValidationError:
+                  summary: Data validation failed
+                  value:
+                    type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/DataValidationError"
+                    title: "Data Validation Failed"
+                    detail: "See data_errors"
+                    data_errors: [{}, {}]

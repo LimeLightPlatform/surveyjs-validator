@@ -1,0 +1,35 @@
+services:
+  surveyjs-validator:
+    restart: on-failure
+    build:
+      context: .
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    ports:
+      - "3000:3000"
+      - "9464:9464"
+    environment:
+      - OTEL_SERVICE_NAME=surveyjs-validator
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http
+      - OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http
+      - OTEL_EXPORTER_OTLP_METRICS_PROTOCOL=http
+      - OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 2
+      start_period: 2s
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.38.1
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
