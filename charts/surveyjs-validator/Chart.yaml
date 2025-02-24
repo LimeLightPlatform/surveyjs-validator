@@ -1,0 +1,5 @@
+apiVersion: v2
+name: surveyjs-validator
+description: Serverside SurveyJS validation
+type: application
+version: 0.0.1
