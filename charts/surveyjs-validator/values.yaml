@@ -29,6 +29,13 @@ serviceAccount:
 serviceMonitor:
   enabled: false
 
+# tracing via OpenTelemetry
+openTelemetry:
+  enabled: false
+  otlp:
+    endpoint:
+    protocol: grpc
+
 podAnnotations: {}
 podLabels: {}
 
