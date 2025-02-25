@@ -25,6 +25,10 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
+# prometheus metrics
+serviceMonitor:
+  enabled: false
+
 podAnnotations: {}
 podLabels: {}
 
@@ -42,6 +46,7 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 80
+  metricsPort: 9464
 
 ingress:
   enabled: false
@@ -60,11 +65,11 @@ ingress:
 # surveyjs-validator will only use 1 CPU core max
 resources: {}
   # limits:
-  #   cpu: 100m
+  #   cpu: 1000m
   #   memory: 128Mi
   # requests:
   #   cpu: 100m
-  #   memory: 128Mi
+  #   memory: 64Mi
 
 livenessProbe:
   httpGet:
