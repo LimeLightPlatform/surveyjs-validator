@@ -35,7 +35,28 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "healthy" });
 });
 
-app.post("/validate", (req, res) => {
+app.post("/validate/schema", (req, res) => {
+  if (req.body.schema === undefined) {
+    res
+        .status(400)
+        .type(PROBLEM_DETAILS_TYPE)
+        .json(count_error(error_schema_missing()));
+    return;
+  }
+
+  const survey = new surveyjs.SurveyModel(req.body.schema);
+  if (survey.jsonErrors) {
+    res
+        .status(400)
+        .type(PROBLEM_DETAILS_TYPE)
+        .json(count_error(error_schema_validation(survey.jsonErrors)));
+    return;
+  }
+
+  res.status(200).type("application/json").json({});
+});
+
+app.post("/validate/survey", (req, res) => {
   if (req.body.schema === undefined) {
     res
       .status(400)

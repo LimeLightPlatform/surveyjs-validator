@@ -22,7 +22,73 @@ paths:
                   status:
                     type: string
                     example: "healthy"
-  /validate:
+  /validate/schema:
+    post:
+      summary: Validate SurveyJS Schema
+      description: Uses SurveyJS to validate a given schema.
+      operationId: validateSchema
+      requestBody:
+        description: JSON payload containing the Survey JS schema.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [schema]
+              properties:
+                schema:
+                  type: object
+                  description: SurveyJS schema
+            examples:
+              validRequest:
+                summary: Valid request example
+                value:
+                  schema:
+                    pages:
+                      - name: "page1"
+                        elements:
+                          - type: "text"
+                            name: "question"
+                            isRequired: true
+                            validators:
+                              - type: "text"
+                                text: "what"
+                                minLength: 1
+      responses:
+        "200":
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {}
+        "400":
+          description: Bad request (various validation errors)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidJson:
+                  summary: Invalid JSON
+                  value:
+                    type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/JsonParsingError"
+                    title: "Invalid JSON"
+                    detail: "Unexpected token at position 5"
+                schemaMissing:
+                  summary: Schema missing
+                  value:
+                    type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/SchemaMissingError"
+                    title: "Schema Missing"
+                    detail: "Request payload must contain `schema`, a SurveyJS schema"
+                schemaValidationError:
+                  summary: Schema validation failed
+                  value:
+                    type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/SchemaValidationError"
+                    title: "Schema Validation Failed"
+                    detail: "See schema_errors"
+                    schema_errors: [{}, {}]
+  /validate/survey:
     post:
       summary: Validate SurveyJS Schema and Data
       description: Uses SurveyJS to validate a given schema and form submission.
@@ -70,31 +136,9 @@ paths:
         "400":
           description: Bad request (various validation errors)
           content:
-            application/json:
+            application/problem+json:
               schema:
-                type: object
-                required: [type, title, detail]
-                properties:
-                  type:
-                    type: string
-                    format: uri
-                    description: A URI reference that identifies the problem type
-                  title:
-                    type: string
-                    description: A short, human-readable summary of the problem
-                  detail:
-                    type: string
-                    description: A detailed explanation of the error
-                  schema_errors:
-                    type: array
-                    description: List of schema validation errors
-                    items:
-                      type: object
-                  data_errors:
-                    type: array
-                    description: List of data validation errors
-                    items:
-                      type: object
+                $ref: '#/components/schemas/Error'
               examples:
                 invalidJson:
                   summary: Invalid JSON
@@ -128,3 +172,94 @@ paths:
                     title: "Data Validation Failed"
                     detail: "See data_errors"
                     data_errors: [{}, {}]
+components:
+  schemas:
+    Error:
+      type: object
+      description: Generic error model (see RFC 7807).
+      properties:
+        type:
+          type: string
+          format: "^[0-9]+$"
+          maxLength: 2000
+          description: A URI reference that identifies the problem type.
+          example: https://ris.integrations.spothero.com/errors/ReservationGenericError
+        title:
+          type: string
+          format: "^[0-9]+$"
+          maxLength: 256
+          description: A short, human-readable summary of the problem type. Does not change per occurrence.
+          example: Generic Reservation Error
+        detail:
+          type: string
+          format: "^[0-9]+$"
+          maxLength: 10000
+          description: A human-readable explanation specific to this occurrence of the problem.
+          example: Details for this specific instance of the error.
+      example:
+        type: https://github.com/LimeLightPlatform/surveyjs-validator/wiki/JsonParsingError
+        description: Invalid JSON
+        detail: Unexpected token at position 5
+
+    JsonParsingError:
+      description: Invalid JSON
+      allOf:
+        - $ref: '#/components/schemas/Error'
+      example:
+        type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/JsonParsingError"
+        title: "Invalid JSON"
+        detail: "Unexpected token at position 5"
+
+    SchemaMissingError:
+      description: Schema missing
+      allOf:
+        - $ref: '#/components/schemas/Error'
+      example:
+        type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/SchemaMissingError"
+        title: "Schema missing"
+        detail: "Request payload must contain `schema`, a SurveyJS schema"
+
+    DataMissingError:
+      description: Data missing
+      allOf:
+        - $ref: '#/components/schemas/Error'
+      example:
+        type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/DataMissingError"
+        title: "Data Missing"
+        detail: "Request payload must contain `data`, a SurveyJS form submission"
+
+    SchemaValidationError:
+      description: Schema validation failed
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            schema_errors:
+              type: array
+              description: SurveyJS schema validation errors
+              example: [{}, {}]
+          example:
+            schema_errors: [{}, {}]
+      example:
+        type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/SchemaValidationError"
+        title: "Schema Validation Failed"
+        detail: "See schema_errors"
+        schema_errors: [{}, {}]
+
+    DataValidationError:
+      description: Data validation failed
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            data_errors:
+              type: array
+              description: SurveyJS data validation errors
+              example: [{}, {}]
+          example:
+            data_errors: [{}, {}]
+      example:
+        type: "https://github.com/LimeLightPlatform/surveyjs-validator/wiki/DataValidationError"
+        title: "Data Validation Failed"
+        detail: "See data_errors"
+        data_errors: [{}, {}]
